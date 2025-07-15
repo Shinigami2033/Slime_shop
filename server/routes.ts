@@ -44,17 +44,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const newsletters = await storage.getAllNewsletters();
       
-      // Create CSV content
-      const csvHeader = "email,subscribed_at\n";
-      const csvRows = newsletters.map(newsletter => 
-        `${newsletter.email},"${newsletter.subscribedAt?.toISOString() || ''}"`
-      ).join("\n");
+      // Create CSV content with custom headers
+      const csvHeader = "Email Address,Date\n";
+      const csvRows = newsletters.map(newsletter => {
+        const date = new Date(newsletter.subscribedAt).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        });
+        return `"${newsletter.email}","${date}"`;
+      }).join("\n");
       
       const csvContent = csvHeader + csvRows;
       
       // Set headers for CSV download
       res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', 'attachment; filename=newsletter-emails.csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=newsletter-subscribers.csv');
       res.send(csvContent);
     } catch (error) {
       console.error("CSV export error:", error);
