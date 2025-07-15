@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { insertNewsletterSchema } from "@shared/schema";
+import { insertNewsletterSchema, type InsertNewsletter } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
@@ -12,7 +12,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 const newsletterSchema = insertNewsletterSchema;
-type NewsletterFormData = typeof newsletterSchema._type;
+type NewsletterFormData = InsertNewsletter;
 
 const products = [
   {
@@ -72,7 +72,15 @@ export default function Landing() {
       }, 5000);
     },
     onError: (error: any) => {
-      const errorMessage = error.message || "Something went wrong. Please try again.";
+      console.error("Newsletter signup error:", error);
+      let errorMessage = "Something went wrong. Please try again.";
+      
+      if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error",
         description: errorMessage,
