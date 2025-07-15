@@ -28,6 +28,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all newsletters
+  app.get("/api/newsletters", async (req, res) => {
+    try {
+      const newsletters = await storage.getAllNewsletters();
+      res.json(newsletters);
+    } catch (error) {
+      console.error("Get newsletters error:", error);
+      res.status(500).json({ error: "Failed to fetch newsletters" });
+    }
+  });
+
   // Export newsletters as CSV
   app.get("/api/newsletters/export", async (req, res) => {
     try {
