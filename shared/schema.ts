@@ -1,29 +1,28 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-});
+// User types
+export interface User {
+  id: number;
+  username: string;
+  password: string;
+}
 
-export const newsletters = pgTable("newsletters", {
-  id: serial("id").primaryKey(),
-  email: text("email").notNull().unique(),
-  subscribedAt: timestamp("subscribed_at").notNull().defaultNow(),
-});
-
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
-
-export const insertNewsletterSchema = createInsertSchema(newsletters).pick({
-  email: true,
+export const insertUserSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+
+// Newsletter types
+export interface Newsletter {
+  id: number;
+  email: string;
+  subscribedAt: Date;
+}
+
+export const insertNewsletterSchema = z.object({
+  email: z.string().email("Invalid email format"),
+});
+
 export type InsertNewsletter = z.infer<typeof insertNewsletterSchema>;
-export type Newsletter = typeof newsletters.$inferSelect;
