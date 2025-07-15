@@ -1,18 +1,18 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
+import { insertNewsletterSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Mail, Star, Sparkles, Heart } from "lucide-react";
+import { CheckCircle, Mail, Star, Sparkles, Heart, Download } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
-const newsletterSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-});
-
-type NewsletterFormData = z.infer<typeof newsletterSchema>;
+const newsletterSchema = insertNewsletterSchema;
+type NewsletterFormData = typeof newsletterSchema._type;
 
 const products = [
   {
@@ -47,6 +47,7 @@ const products = [
 export default function Landing() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [subscriberCount] = useState(500);
+  const { toast } = useToast();
 
   const form = useForm<NewsletterFormData>({
     resolver: zodResolver(newsletterSchema),
@@ -55,15 +56,37 @@ export default function Landing() {
     },
   });
 
+  const newsletterMutation = useMutation({
+    mutationFn: (data: NewsletterFormData) => apiRequest("/api/newsletter", "POST", data),
+    onSuccess: () => {
+      setIsSubmitted(true);
+      form.reset();
+      toast({
+        title: "Success!",
+        description: "You've been added to our newsletter list.",
+      });
+      
+      // Reset success message after 5 seconds
+      setTimeout(() => {
+        setIsSubmitted(false);
+      }, 5000);
+    },
+    onError: (error: any) => {
+      const errorMessage = error.message || "Something went wrong. Please try again.";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: NewsletterFormData) => {
-    console.log("Email submitted:", data.email);
-    setIsSubmitted(true);
-    form.reset();
-    
-    // Reset success message after 5 seconds
-    setTimeout(() => {
-      setIsSubmitted(false);
-    }, 5000);
+    newsletterMutation.mutate(data);
+  };
+
+  const downloadCSV = () => {
+    window.open('/api/newsletters/export', '_blank');
   };
 
   const scrollToSection = (id: string) => {
@@ -220,10 +243,10 @@ export default function Landing() {
                       <Button 
                         type="submit"
                         className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-2xl text-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300"
-                        disabled={form.formState.isSubmitting}
+                        disabled={newsletterMutation.isPending}
                       >
                         <Heart className="mr-2 h-5 w-5" />
-                        Notify Me When Available! 🎉
+                        {newsletterMutation.isPending ? "Subscribing..." : "Notify Me When Available! 🎉"}
                       </Button>
                     </form>
                   </Form>
@@ -297,8 +320,21 @@ export default function Landing() {
             </div>
           </div>
           
-          <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 SlimeShop. All rights reserved. Made with 💜 for slime lovers everywhere.</p>
+          <div className="border-t border-gray-700 mt-8 pt-8">
+            <div className="flex flex-col sm:flex-row justify-between items-center">
+              <p className="text-gray-400 text-center sm:text-left">
+                &copy; 2024 SlimeShop. All rights reserved. Made with 💜 for slime lovers everywhere.
+              </p>
+              <Button
+                onClick={downloadCSV}
+                variant="outline"
+                size="sm"
+                className="mt-4 sm:mt-0 bg-transparent border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-white"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Export Emails
+              </Button>
+            </div>
           </div>
         </div>
       </footer>
