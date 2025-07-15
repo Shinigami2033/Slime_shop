@@ -125,12 +125,6 @@ export default function Landing() {
               >
                 Newsletter
               </button>
-              <a 
-                href="/admin"
-                className="text-gray-700 hover:text-purple-600 transition-colors"
-              >
-                Admin
-              </a>
             </div>
           </nav>
         </div>

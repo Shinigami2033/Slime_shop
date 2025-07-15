@@ -1,12 +1,27 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Download, Users, Calendar } from "lucide-react";
+import { Mail, Download, Users, Calendar, LogOut } from "lucide-react";
 import { Link } from "wouter";
 import { type Newsletter } from "@shared/schema";
+import AdminLogin from "./admin-login";
 
 export default function Admin() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+  };
+
+  if (!isAuthenticated) {
+    return <AdminLogin onLogin={handleLogin} />;
+  }
   const { data: newsletters, isLoading, error } = useQuery<Newsletter[]>({
     queryKey: ['/api/newsletters'],
     queryFn: async () => {
@@ -69,13 +84,23 @@ export default function Admin() {
               </Link>
               <h1 className="text-2xl font-bold text-gray-900">Newsletter Admin</h1>
             </div>
-            <Button 
-              onClick={downloadCSV}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Export CSV
-            </Button>
+            <div className="flex items-center space-x-3">
+              <Button 
+                onClick={downloadCSV}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Export CSV
+              </Button>
+              <Button 
+                onClick={handleLogout}
+                variant="outline"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </header>
