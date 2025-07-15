@@ -8,20 +8,7 @@ import { Link } from "wouter";
 import { type Newsletter } from "@shared/schema";
 import AdminLogin from "./admin-login";
 
-export default function Admin() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-  };
-
-  if (!isAuthenticated) {
-    return <AdminLogin onLogin={handleLogin} />;
-  }
+function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const { data: newsletters, isLoading, error } = useQuery<Newsletter[]>({
     queryKey: ['/api/newsletters'],
     queryFn: async () => {
@@ -93,7 +80,7 @@ export default function Admin() {
                 Export CSV
               </Button>
               <Button 
-                onClick={handleLogout}
+                onClick={onLogout}
                 variant="outline"
                 className="border-gray-300 text-gray-700 hover:bg-gray-50"
               >
@@ -193,4 +180,22 @@ export default function Admin() {
       </main>
     </div>
   );
+}
+
+export default function Admin() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+  };
+
+  if (!isAuthenticated) {
+    return <AdminLogin onLogin={handleLogin} />;
+  }
+
+  return <AdminDashboard onLogout={handleLogout} />;
 }
