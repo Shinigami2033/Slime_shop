@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Mail, Star, Sparkles, Heart, Download } from "lucide-react";
+import { CheckCircle, Mail, Star, Sparkles, Heart } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -93,9 +93,7 @@ export default function Landing() {
     newsletterMutation.mutate(data);
   };
 
-  const downloadCSV = () => {
-    window.open('/api/newsletters/export', '_blank');
-  };
+
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -335,19 +333,10 @@ export default function Landing() {
           </div>
           
           <div className="border-t border-gray-700 mt-8 pt-8">
-            <div className="flex flex-col sm:flex-row justify-between items-center">
-              <p className="text-gray-400 text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row justify-center items-center">
+              <p className="text-gray-400 text-center">
                 &copy; 2024 SlimeShop. All rights reserved. Made with 💜 for slime lovers everywhere.
               </p>
-              <Button
-                onClick={downloadCSV}
-                variant="outline"
-                size="sm"
-                className="mt-4 sm:mt-0 bg-transparent border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-white"
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Export Emails
-              </Button>
             </div>
           </div>
         </div>
