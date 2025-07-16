@@ -17,12 +17,12 @@ type NewsletterFormData = InsertNewsletter;
 const products = [
   {
     id: 1,
-    name: "Galaxy Green",
-    description: "Mesmerizing green slime with holographic glitter that sparkles like stars in the night sky. Perfect for stress relief and endless stretching fun!",
+    name: "Ocean Adventure",
+    description: "Mein überaktivierter Slime den ich ab und zu gerne mal Drücke. Kauf dir einen. Kauf Kauf KAUF! Er ist blau und riecht nach Meer.",
     price: "$12.99",
-    image: "https://images.unsplash.com/photo-1528459801416-a9e53bbf4e17?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
-    color: "from-green-50 to-green-100",
-    priceColor: "text-green-600"
+    image: "/images/Ocean_Adventure.jpg",
+    color: "from-blue-50 to-blue-100",
+    priceColor: "text-blue-600"
   },
   {
     id: 2,
