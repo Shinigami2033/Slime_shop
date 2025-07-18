@@ -1,0 +1,17 @@
+{
+  "name": "admin-verwaltung",
+  "version": "1.0.0",
+  "description": "Werkzeuge zur Verwaltung von Admin-Benutzern",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "create-admin": "node create-admin.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  }
+}
