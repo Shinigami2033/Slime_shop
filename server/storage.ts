@@ -1,7 +1,6 @@
-import { type User, type InsertUser, type Newsletter, type InsertNewsletter } from "@shared/schema";
-
-// modify the interface with any CRUD methods
-// you might need
+import { users, newsletters, type User, type InsertUser, type Newsletter, type InsertNewsletter } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -11,74 +10,57 @@ export interface IStorage {
   getAllNewsletters(): Promise<Newsletter[]>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private newsletters: Map<number, Newsletter>;
-  private currentUserId: number;
-  private currentNewsletterId: number;
-
+export class DatabaseStorage implements IStorage {
   constructor() {
-    this.users = new Map();
-    this.newsletters = new Map();
-    this.currentUserId = 1;
-    this.currentNewsletterId = 1;
-    
     // Initialize with default admin user
-    this.initializeDefaultAdmin();
+    this.ensureDefaultAdmin();
   }
 
-  private async initializeDefaultAdmin() {
-    // Create default admin user
-    const adminUser: User = {
-      id: this.currentUserId++,
-      username: "Admin2033",
-      password: "1234"
-    };
-    this.users.set(adminUser.id, adminUser);
+  private async ensureDefaultAdmin() {
+    try {
+      // Check if admin user already exists
+      const existingAdmin = await this.getUserByUsername("Admin2033");
+      if (!existingAdmin) {
+        // Create default admin user
+        await this.createUser({
+          username: "Admin2033",
+          password: "1234"
+        });
+      }
+    } catch (error) {
+      console.error("Error ensuring default admin:", error);
+    }
   }
 
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
 
   async createNewsletter(insertNewsletter: InsertNewsletter): Promise<Newsletter> {
-    // Check if email already exists
-    const existingNewsletter = Array.from(this.newsletters.values()).find(
-      (newsletter) => newsletter.email === insertNewsletter.email
-    );
-    
-    if (existingNewsletter) {
-      const error = new Error("Email already subscribed");
-      (error as any).code = '23505'; // PostgreSQL unique constraint error code
-      throw error;
-    }
-
-    const id = this.currentNewsletterId++;
-    const newsletter: Newsletter = { 
-      ...insertNewsletter, 
-      id, 
-      subscribedAt: new Date() 
-    };
-    this.newsletters.set(id, newsletter);
+    const [newsletter] = await db
+      .insert(newsletters)
+      .values(insertNewsletter)
+      .returning();
     return newsletter;
   }
 
   async getAllNewsletters(): Promise<Newsletter[]> {
-    return Array.from(this.newsletters.values());
+    return await db.select().from(newsletters);
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

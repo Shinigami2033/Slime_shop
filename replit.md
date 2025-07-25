@@ -22,7 +22,8 @@ Preferred communication style: Simple, everyday language.
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js framework
 - **Language**: TypeScript with ES modules
-- **Storage**: In-memory storage with Map data structures
+- **Database**: PostgreSQL with Drizzle ORM
+- **Storage**: PostgreSQL database with proper schema validation
 - **Session Management**: Memory-based session store (memorystore)
 - **Development**: Hot reload with tsx
 
@@ -42,10 +43,10 @@ Preferred communication style: Simple, everyday language.
 ## Key Components
 
 ### Data Schema
-- **User Types**: Basic user authentication with username/password
-- **Newsletter Types**: Email subscription management with timestamps
-- **Schema Validation**: Zod schemas for type safety and validation
-- **Storage**: In-memory Map-based storage with auto-incrementing IDs
+- **User Types**: Basic user authentication with username/password stored in PostgreSQL
+- **Newsletter Types**: Email subscription management with timestamps in PostgreSQL
+- **Schema Validation**: Drizzle ORM with Zod schemas for type safety and validation
+- **Storage**: PostgreSQL database with proper relational structure and constraints
 
 ### Frontend Components
 - **Landing Page**: Product showcase with newsletter signup
@@ -88,27 +89,29 @@ Preferred communication style: Simple, everyday language.
 ### Build Process
 1. **Frontend Build**: Vite builds React app to `dist/public`
 2. **Backend Build**: esbuild bundles server code to `dist/index.js`
-3. **Storage**: In-memory storage initializes automatically on startup
+3. **Database**: PostgreSQL database with Drizzle ORM migrations
 
 ### Environment Configuration
 - **Development**: Uses tsx for hot reload and Vite dev server
 - **Production**: Serves static files and runs bundled Express server
-- **Storage**: In-memory storage requires no external database configuration
+- **Database**: PostgreSQL database with persistent data storage
 
 ### Scripts
 - `dev`: Start development server with hot reload
 - `build`: Build both frontend and backend for production
 - `start`: Run production server
 
-The application is structured as a monorepo with clear separation between client and server code, shared types, and a robust development workflow optimized for the Replit environment. All data is stored in-memory, making it perfect for development and testing without external database dependencies.
+The application is structured as a monorepo with clear separation between client and server code, shared types, and a robust development workflow optimized for the Replit environment. All data is stored persistently in PostgreSQL database with proper schema validation and Drizzle ORM for type-safe database operations.
 
 ## Recent Changes
 
 **July 25, 2025**
-- ✓ Fixed Admin Login Issue: Connected admin login to database instead of hardcoded credentials
-- ✓ Added API endpoint for admin authentication (/api/admin/login)
-- ✓ Implemented proper database-based user authentication
-- ✓ Enhanced error handling with German language support
+- ✓ Added PostgreSQL database integration with Drizzle ORM
+- ✓ Updated schema to use proper database tables with constraints
+- ✓ Converted from in-memory storage to persistent database storage
+- ✓ Fixed admin login system to authenticate against database
+- ✓ Added database initialization with default admin user (Admin2033/1234)
+- ✓ Updated all CRUD operations to work with PostgreSQL
 - ✓ Migration from Replit Agent to Replit environment completed successfully
 
 **July 15, 2025**

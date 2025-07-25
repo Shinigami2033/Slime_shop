@@ -1,0 +1,5 @@
+{
+  "schema": "./shared/schema.ts",
+  "out": "./migrations",
+  "dialect": "postgresql"
+}
