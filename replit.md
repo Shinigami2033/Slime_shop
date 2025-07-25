@@ -104,6 +104,13 @@ The application is structured as a monorepo with clear separation between client
 
 ## Recent Changes
 
+**July 25, 2025**
+- ✓ Fixed Admin Login Issue: Connected admin login to database instead of hardcoded credentials
+- ✓ Added API endpoint for admin authentication (/api/admin/login)
+- ✓ Implemented proper database-based user authentication
+- ✓ Enhanced error handling with German language support
+- ✓ Migration from Replit Agent to Replit environment completed successfully
+
 **July 15, 2025**
 - ✓ Removed SQL/PostgreSQL integration and Drizzle ORM
 - ✓ Simplified schema to use TypeScript interfaces with Zod validation

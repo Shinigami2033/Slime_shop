@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertNewsletterSchema } from "@shared/schema";
+import { insertNewsletterSchema, insertUserSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Newsletter signup endpoint
@@ -64,6 +64,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("CSV export error:", error);
       res.status(500).json({ error: "Failed to export newsletters" });
+    }
+  });
+
+  // Admin login endpoint
+  app.post("/api/admin/login", async (req, res) => {
+    try {
+      const validation = insertUserSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: "Invalid input",
+          details: validation.error.errors
+        });
+      }
+
+      const { username, password } = validation.data;
+      const user = await storage.getUserByUsername(username);
+      
+      if (!user || user.password !== password) {
+        return res.status(401).json({
+          error: "Invalid credentials"
+        });
+      }
+
+      // Login successful
+      res.json({ 
+        success: true, 
+        user: { id: user.id, username: user.username } 
+      });
+    } catch (error) {
+      console.error("Admin login error:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   });
 

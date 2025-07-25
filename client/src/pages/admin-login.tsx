@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Lock, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
+import { apiRequest } from "@/lib/queryClient";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -25,6 +26,7 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
   const [error, setError] = useState<string>("");
   const [attemptCount, setAttemptCount] = useState(0);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -34,28 +36,40 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
     },
   });
 
-  const onSubmit = (data: LoginFormData) => {
-    if (isBlocked) {
+  const onSubmit = async (data: LoginFormData) => {
+    if (isBlocked || isLoading) {
       return;
     }
 
-    // Check credentials
-    if (data.username === "Admin2033" && data.password === "1234") {
-      setError("");
-      setAttemptCount(0);
-      onLogin();
-    } else {
+    setIsLoading(true);
+    setError("");
+
+    try {
+      // Make API request to login endpoint
+      const result = await apiRequest("/api/admin/login", "POST", data);
+      
+      if (result.success) {
+        setError("");
+        setAttemptCount(0);
+        onLogin();
+        return;
+      } else {
+        throw new Error("Login failed");
+      }
+    } catch (err: any) {
       const newAttemptCount = attemptCount + 1;
       setAttemptCount(newAttemptCount);
       
       if (newAttemptCount >= 3) {
         setIsBlocked(true);
-        setError("Access blocked. Too many failed attempts.");
+        setError("Zugang blockiert. Zu viele fehlgeschlagene Versuche.");
       } else {
-        setError(`Invalid credentials. ${3 - newAttemptCount} attempt(s) remaining.`);
+        setError(`Ungültige Anmeldedaten. ${3 - newAttemptCount} Versuch(e) verbleibend.`);
       }
       
       form.reset();
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -130,9 +144,9 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
                 <Button 
                   type="submit" 
                   className="w-full bg-purple-600 hover:bg-purple-700"
-                  disabled={isBlocked}
+                  disabled={isBlocked || isLoading}
                 >
-                  {isBlocked ? "Access Blocked" : "Login"}
+                  {isBlocked ? "Zugang Blockiert" : isLoading ? "Anmelden..." : "Anmelden"}
                 </Button>
               </form>
             </Form>
@@ -140,8 +154,8 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
             {isBlocked && (
               <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
                 <p className="text-sm text-red-700">
-                  Access has been blocked due to multiple failed login attempts. 
-                  Please contact the administrator.
+                  Der Zugang wurde aufgrund mehrerer fehlgeschlagener Anmeldeversuche blockiert. 
+                  Bitte wenden Sie sich an den Administrator.
                 </p>
               </div>
             )}

@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser, type Newsletter, type InsertNewsletter } from "@shared/schema";
+import { type User, type InsertUser, type Newsletter, type InsertNewsletter } from "@shared/schema";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -22,6 +22,19 @@ export class MemStorage implements IStorage {
     this.newsletters = new Map();
     this.currentUserId = 1;
     this.currentNewsletterId = 1;
+    
+    // Initialize with default admin user
+    this.initializeDefaultAdmin();
+  }
+
+  private async initializeDefaultAdmin() {
+    // Create default admin user
+    const adminUser: User = {
+      id: this.currentUserId++,
+      username: "Admin2033",
+      password: "1234"
+    };
+    this.users.set(adminUser.id, adminUser);
   }
 
   async getUser(id: number): Promise<User | undefined> {
