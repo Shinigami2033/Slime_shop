@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -189,17 +189,58 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 }
 
 export default function Admin() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<{id: number, username: string} | null>(null);
+  const [isChecking, setIsChecking] = useState(true);
 
-  const handleLogin = () => {
-    setIsAuthenticated(true);
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/admin/session');
+        const data = await response.json();
+        
+        if (data.authenticated) {
+          setIsLoggedIn(true);
+          setUser(data.user);
+        }
+      } catch (error) {
+        console.log('Session check failed:', error);
+      } finally {
+        setIsChecking(false);
+      }
+    };
+
+    checkSession();
+  }, []);
+
+  const handleLogin = (userData: {id: number, username: string}) => {
+    setIsLoggedIn(true);
+    setUser(userData);
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/logout', { method: 'POST' });
+    } catch (error) {
+      console.log('Logout error:', error);
+    }
+    setIsLoggedIn(false);
+    setUser(null);
   };
 
-  if (!isAuthenticated) {
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Session wird überprüft...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
     return <AdminLogin onLogin={handleLogin} />;
   }
 

@@ -3,7 +3,23 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertNewsletterSchema, insertUserSchema } from "@shared/schema";
 
+// Extend Express session types
+declare module 'express-session' {
+  interface SessionData {
+    userId?: number;
+    username?: string;
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Middleware to check authentication for protected routes
+  const requireAuth = (req: any, res: any, next: any) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+    next();
+  };
+
   // Newsletter signup endpoint
   app.post("/api/newsletter", async (req, res) => {
     try {
@@ -28,8 +44,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all newsletters
-  app.get("/api/newsletters", async (req, res) => {
+  // Get all newsletters (protected)
+  app.get("/api/newsletters", requireAuth, async (req, res) => {
     try {
       const newsletters = await storage.getAllNewsletters();
       res.json(newsletters);
@@ -39,8 +55,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Export newsletters as CSV
-  app.get("/api/newsletters/export", async (req, res) => {
+  // Export newsletters as CSV (protected)
+  app.get("/api/newsletters/export", requireAuth, async (req, res) => {
     try {
       const newsletters = await storage.getAllNewsletters();
       
@@ -87,6 +103,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Store user info in session
+      req.session.userId = user.id;
+      req.session.username = user.username;
+      
       // Login successful
       res.json({ 
         success: true, 
@@ -98,8 +118,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all admin users
-  app.get("/api/admin/users", async (req, res) => {
+  // Check session status
+  app.get("/api/admin/session", async (req, res) => {
+    if (req.session.userId && req.session.username) {
+      res.json({
+        authenticated: true,
+        user: { id: req.session.userId, username: req.session.username }
+      });
+    } else {
+      res.json({ authenticated: false });
+    }
+  });
+
+  // Logout endpoint
+  app.post("/api/admin/logout", async (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Session destroy error:", err);
+        return res.status(500).json({ error: "Failed to logout" });
+      }
+      res.json({ success: true });
+    });
+  });
+
+  // Get all admin users (protected)
+  app.get("/api/admin/users", requireAuth, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
       // Don't send passwords in response
@@ -111,8 +154,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create new admin user
-  app.post("/api/admin/users", async (req, res) => {
+  // Create new admin user (protected)
+  app.post("/api/admin/users", requireAuth, async (req, res) => {
     try {
       const validation = insertUserSchema.safeParse(req.body);
       if (!validation.success) {
@@ -138,8 +181,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update admin user (change password or username)
-  app.put("/api/admin/users/:id", async (req, res) => {
+  // Update admin user (change password or username) (protected)
+  app.put("/api/admin/users/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -170,8 +213,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete admin user
-  app.delete("/api/admin/users/:id", async (req, res) => {
+  // Delete admin user (protected)
+  app.delete("/api/admin/users/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,7 +32,7 @@ interface User {
   username: string;
 }
 
-export default function AdminUsers() {
+function AdminUsersContent() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -370,4 +370,60 @@ export default function AdminUsers() {
       </Dialog>
     </div>
   );
+}
+
+export default function AdminUsers() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<{id: number, username: string} | null>(null);
+  const [isChecking, setIsChecking] = useState(true);
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/admin/session');
+        const data = await response.json();
+        
+        if (data.authenticated) {
+          setIsLoggedIn(true);
+          setUser(data.user);
+        }
+      } catch (error) {
+        console.log('Session check failed:', error);
+      } finally {
+        setIsChecking(false);
+      }
+    };
+
+    checkSession();
+  }, []);
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Session wird überprüft...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-white p-8 rounded-lg shadow-md">
+            <h2 className="text-xl font-bold mb-4">Nicht autorisiert</h2>
+            <p className="text-gray-600 mb-4">Sie müssen sich erst anmelden, um die Admin-Verwaltung zu nutzen.</p>
+            <a href="/admin" className="text-purple-600 hover:text-purple-800">
+              ← Zurück zur Admin-Anmeldung
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <AdminUsersContent />;
 }
