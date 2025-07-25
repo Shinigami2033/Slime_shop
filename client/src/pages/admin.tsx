@@ -72,6 +72,12 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               <h1 className="text-2xl font-bold text-gray-900">Newsletter Admin</h1>
             </div>
             <div className="flex items-center space-x-3">
+              <Link href="/admin/users">
+                <Button variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50">
+                  <Users className="mr-2 h-4 w-4" />
+                  Admin-Verwaltung
+                </Button>
+              </Link>
               <Button 
                 onClick={downloadCSV}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
